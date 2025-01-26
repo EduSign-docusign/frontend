@@ -8,7 +8,7 @@ export default {
     "icon": "./assets/edusign-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/adaptive-icon.png",
+      "image": "./assets/edusign-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0d111a"
     },
@@ -21,7 +21,7 @@ export default {
     "android": {
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/edusign-logo.png",
         "backgroundColor": "#161718"
       },
       "package": "com.app.edusign",
