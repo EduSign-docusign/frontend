@@ -14,6 +14,9 @@ import { ScrollView } from "react-native-gesture-handler";
 
 import { getToken } from "../../utils";
 
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs();//Ignore all log notifications
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
@@ -152,11 +155,12 @@ const PermissionSlipsScreen = () => {
     
     let attempts = 0;
     const maxAttempts = 3;
-    const retryDelay = 3000; // 3 seconds
-  
+    
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
     while (attempts < maxAttempts) {
       try {
-        console.log("Attempt", attempts, "Retrying...")
+        console.log("Attempt", attempts + 1, "Retrying...")
         const response = await axios.get(user_url);
         console.log("User Response", JSON.stringify(response.data))
         if (response.data.user) {
@@ -170,12 +174,9 @@ const PermissionSlipsScreen = () => {
       }
   
       attempts++;
-      if (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, retryDelay)); // Wait before retrying
-      }
     }
   
-    console.error("Max retries reached. Failed to fetch user data.");
+    console.error("Max retries reached. Failed to fetch user asd.");
   }
   
 
@@ -370,7 +371,7 @@ const PermissionSlipsScreen = () => {
         <Animated.Text style={[styles.welcomeText, { opacity: headerOpacity }]}>
           Welcome back,
         </Animated.Text>
-        <Text style={styles.nameText}>{user.name} ({user.type})</Text>
+        <Text style={styles.nameText}>{user.name}</Text>
       </Animated.View>
 
       <TextInput

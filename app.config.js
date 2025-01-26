@@ -3,9 +3,9 @@ export default {
     "name": "EduSign",
     "scheme": "edusign",
     "slug": "edusign",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/adaptive-icon.png",
+    "icon": "./assets/edusign-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/adaptive-icon.png",
