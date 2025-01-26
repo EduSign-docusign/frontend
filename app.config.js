@@ -19,18 +19,22 @@ export default {
       "backgroundColor": "#0d111a"
     },
     "android": {
-      "googleServicesFile": "./google-services.json",
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#161718"
       },
-      "package": "com.torusplatforms.torus",
-      "versionCode": 29
+      "package": "com.app.edusign",
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "owner": "edusign",
+    "extra": {
+      "eas": {
+        "projectId": "f09bafa7-3374-4792-8e92-bcfcd3b1963e"
+      }
+    },
+    "owner": "tanujks",
     "newArchEnabled": true
   }
 }

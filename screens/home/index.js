@@ -1,12 +1,19 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { View, Text, TouchableOpacity, RefreshControl, SectionList, Alert, Animated, ActivityIndicator, StatusBar, Modal, TouchableWithoutFeedback, Keyboard, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, RefreshControl, SectionList, Alert, Animated, ActivityIndicator, StatusBar, Modal, TouchableWithoutFeedback, Keyboard, TextInput, Platform } from "react-native";
 import axios from 'axios';
 import { getAuth } from "firebase/auth";
 import * as WebBrowser from 'expo-web-browser';
 import { Feather } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
 import styles from "./styles"
 import { ScrollView } from "react-native-gesture-handler";
+
+import { getToken } from "../../utils";
+
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
@@ -35,17 +42,142 @@ const PermissionSlipsScreen = () => {
     extrapolate: 'clamp'
   });
 
-  async function getUser() {
-    try {
-      const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser?user_id=${auth.currentUser.uid}`
-      console.log(user_url)
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
 
-      const response = await axios.get(user_url);
-      setUser(response.data.user);
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-    }      
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [channels, setChannels] = useState([]);
+  const [notification, setNotification] = useState(undefined);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  async function registerForPushNotificationsAsync() {
+    console.log("Registering...")
+    let token;
+  
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('myNotificationChannel', {
+        name: 'A channel is needed for the permissions prompt to appear',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+  
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+      // Learn more about projectId:
+      // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+      // EAS projectId is used here.
+      try {
+        const projectId =
+          Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+        if (!projectId) {
+          throw new Error('Project ID not found');
+        }
+        token = (
+          await Notifications.getExpoPushTokenAsync({
+            projectId,
+          })
+        ).data;
+        console.log("Registered", token);
+      } catch (e) {
+        token = `${e}`;
+      }
+    } else {
+      alert('Must use physical device for Push Notifications');
+    }
+  
+    return token;
   }
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+
+    if (Platform.OS === 'android') {
+      Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
+    }
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      notificationListener.current &&
+        Notifications.removeNotificationSubscription(notificationListener.current);
+      responseListener.current &&
+        Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
+
+  async function updateExpoPushToken() {
+    try {
+      const notification_url = `https://backend-375617093037.us-central1.run.app/api/setExpoPushToken`
+      console.log(notification_url)
+
+      const token = await getToken()
+      console.log(token)
+      const response = await axios.post(notification_url, {expoPushToken: expoPushToken}, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+          "Content-Type": "application/json", 
+        },
+      });
+
+    } catch (error) {
+      console.error('Error setting Expo token:', error);
+    }   
+  }
+
+  async function getUser() {
+    const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser?user_id=${auth.currentUser.uid}`;
+    console.log(user_url);
+    
+    let attempts = 0;
+    const maxAttempts = 3;
+    const retryDelay = 3000; // 3 seconds
+  
+    while (attempts < maxAttempts) {
+      try {
+        console.log("Attempt", attempts, "Retrying...")
+        const response = await axios.get(user_url);
+        console.log("User Response", JSON.stringify(response.data))
+        if (response.data.user) {
+          setUser(response.data.user);
+          return; // Exit the function if successful
+        } else {
+          console.warn(`Attempt ${attempts + 1}: No data received, retrying...`);
+        }
+      } catch (error) {
+        console.error(`Attempt ${attempts + 1}: Error fetching documents`, error);
+      }
+  
+      attempts++;
+      if (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, retryDelay)); // Wait before retrying
+      }
+    }
+  
+    console.error("Max retries reached. Failed to fetch user data.");
+  }
+  
 
   async function getStudentDocuments() {
     try {
@@ -53,7 +185,7 @@ const PermissionSlipsScreen = () => {
       console.log(documents_url)
 
       const response = await axios.get(documents_url);
-      console.log("Response", response.data)
+      console.log("Documents", response.data)
       setSections(response.data.documents || []);
     } catch (error) {
       console.error('Error fetching documents:', error);
@@ -71,6 +203,28 @@ const PermissionSlipsScreen = () => {
       setDocumentSummary(response.data.summary);
     } catch (error) {
       console.error('Error fetching document summary:', error);
+    }
+  };
+  
+  const notifyStudentOrParent = async (document) => {
+    try {
+      const notify_url = `https://backend-375617093037.us-central1.run.app/api/remindStudentOrParent?document_id=${document.id}&student_id=${document.student_id}`
+      console.log(notify_url)
+
+      const token = await getToken()
+      const response = await axios.post(notify_url, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+          "Content-Type": "application/json", 
+        },
+      });
+
+      if (response.data.success) {
+        Alert.alert("Notified signers!")
+      }
+
+    } catch (error) {
+      console.error('Error notifying:', error);
     }
   };
 
@@ -112,11 +266,6 @@ const PermissionSlipsScreen = () => {
         return
       }
 
-      // if (document.status == "Completed") {
-      //   Alert.alert("Already Complete")
-      //   return
-      // }
-
       const get_signing_url_request = `https://backend-375617093037.us-central1.run.app/api/getSigningURL?type=${user.type}&document_id=${document.id}&student_id=${document.student_id}`
       const response = await axios.get(get_signing_url_request);
 
@@ -134,7 +283,7 @@ const PermissionSlipsScreen = () => {
   useEffect(() => {
     getUser()
     getStudentDocuments()
-
+    
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
@@ -142,6 +291,11 @@ const PermissionSlipsScreen = () => {
     }).start();
   }, []);
 
+  useEffect(() => {
+    if (expoPushToken && user) {
+      updateExpoPushToken()
+    }
+  }, [expoPushToken])
 
   const renderItem = function({ item, index }) { 
     return (
@@ -177,10 +331,13 @@ const PermissionSlipsScreen = () => {
               </Text>
 
               <TouchableOpacity style={{marginLeft: 10}} onPress={() => getDocumentSummary(item.id)}>
-                <Feather name="info" size={24} color="#666" />
+                <Feather name="info" size={18} color="#666" />
               </TouchableOpacity>
 
-            </View>
+              <TouchableOpacity style={{marginLeft: 5}} onPress={() => notifyStudentOrParent(item)}>
+                <Feather name="bell" size={18} color="#666" />
+              </TouchableOpacity>
+            </View> 
           </View>
           <View style={styles.itemRightContent}>
               <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status || 'pending'}</Text>
@@ -224,21 +381,32 @@ const PermissionSlipsScreen = () => {
         onChangeText={onSearch}
       />
 
-      <AnimatedSectionList
-        sections={filteredSections || sections}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
-        }
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        contentContainerStyle={styles.listContent}
-        stickySectionHeadersEnabled={false}
-      />
+      { sections.length != 0 && (
+        <AnimatedSectionList
+          sections={filteredSections || sections}
+          keyExtractor={(item) => item.id + item.student_id}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          }
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+          contentContainerStyle={styles.listContent}
+          stickySectionHeadersEnabled={false}
+        />
+      )}
+      
+
+      { sections.length == 0 && (
+        <ScrollView contentContainerStyle={{flex: 1, justifyContent: "center", alignItems: "center"}}   refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}>
+            <Ionicons name="document-text" size={64} color="grey" style={{borderWidth: 2, borderRadius: 64, borderColor: "gray", padding: 25}} />
+            <Text style={{color: "gray", fontSize: 18, marginTop: 15}}>No Pending Documents</Text>
+            <Text style={{color: "gray", fontSize: 18, marginTop: 10}}>You're Good To Go!</Text>
+        </ScrollView>
+      )}
 
       {/* Modal for Document Summary */}
       <Modal
@@ -274,8 +442,6 @@ const PermissionSlipsScreen = () => {
 };
 
 const getStatusColor = (status) => {
-  console.log(status)
-
   switch (status?.toLowerCase()) {
     case 'pending student':
       return '#4CAF50';

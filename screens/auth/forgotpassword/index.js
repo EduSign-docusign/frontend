@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Image, Text, Pressable, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Image, Text, Pressable, TextInput, Alert, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getAuth, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
@@ -16,6 +16,7 @@ export default function ResetPassword() {
         try {
             await sendPasswordResetEmail(auth, email)
             console.log("Sent Email Verification")
+            Alert.alert("Send password reset link to your email!")
         } catch(error) {
             alert(error.message)
         }
@@ -24,28 +25,22 @@ export default function ResetPassword() {
     
     return (
         <SafeAreaView style={styles.container}>
-        <KeyboardAwareScrollView contentContainerStyle={Platform.OS == "ios" ? (styles.container) : {}} enableOnAndroid={true}>
-                <View style={{alignItems: "center", flex: 1}}>
-                    <Image style={{ height: 200, width: 200, resizeMode: "contain"}} source={require('../../../assets/torus.png')}></Image>
+            <View style={{alignItems: "center", flex: 1, justifyContent: "center"}}>
+                <Text style={{marginVertical: 10, color: "white", fontSize: 20}}>Forgot your Password?</Text>
+                <Text style={{ textAlign:'center', fontSize: 16, color: "white", paddingHorizontal: 50}}>Please enter your email address. If you have an account, you will receive a link to reset your password.</Text>
 
-                    <Text style={{marginVertical: 10, color: "white", fontSize: 20}}>Forgot your Password?</Text>
-                    <Text style={{ textAlign:'center', fontSize: 16, color: "white", paddingHorizontal: 50}}>Please enter your email address. If you have an account, you will receive a link to reset your password.</Text>
-
-                    <TextInput 
-                        onChangeText={onChangeEmail} 
-                        placeholder="Email"
-                        placeholderTextColor={"white"}
-                        style={[styles.submissionBox]}
-                    />
-                </View>
-                <View style={{justifyContent: "center", alignItems: "center", flex: 0.5}}>
-                    <Pressable onPress={verification} style={[styles.submissionBox, {padding: 20}]}>
-                        {({pressed}) => 
-                            <Text style={{color: pressed ? 'gray' : 'white', fontSize: 16, textAlign: "center"}}>Send Verification</Text>
-                        }
-                    </Pressable>
-                </View>
-        </KeyboardAwareScrollView>
+                <TextInput 
+                    onChangeText={onChangeEmail} 
+                    placeholder="Email"
+                    placeholderTextColor={"white"}
+                    style={[styles.submissionBox]}
+                />
+                <Pressable onPress={verification} style={[styles.submissionBox, {padding: 20}]}>
+                    {({pressed}) => 
+                        <Text style={{color: pressed ? 'gray' : 'white', fontSize: 16, textAlign: "center"}}>Send Verification</Text>
+                    }
+                </Pressable>
+            </View>
         </SafeAreaView>
     )
 }

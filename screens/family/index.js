@@ -19,11 +19,11 @@ export default function FamilyScreen() {
     const auth = getAuth();
     const navigation = useNavigation()
 
-    const onRefresh = useCallback(async() => {
+    const onRefresh = async() => {
         setRefreshing(true);
         await fetchRequests()
         setRefreshing(false);
-    }, []);
+    };
     
     async function handleApprove(data) {
         try {
@@ -34,8 +34,7 @@ export default function FamilyScreen() {
                 student_id: data.id
             });
 
-            setRequests(prevRequests => prevRequests.filter(child => child.id !== data.id));
-            setChildren(prevChildren => [...prevChildren, { ...data, invite_pending: false }]);
+            onRefresh()
 
         } catch (error) {
             console.error("Error approving request:", error);
@@ -51,7 +50,7 @@ export default function FamilyScreen() {
                 student_id: data.id
             });
 
-            setRequests(prevRequests => prevRequests.filter(child => child.id !== data.id));
+            onRefresh()
 
         } catch (error) {
             console.error("Error rejecting request:", error);
@@ -119,6 +118,7 @@ export default function FamilyScreen() {
     async function getFamilyMembers() {
         try {
             const members_url = `https://backend-375617093037.us-central1.run.app/api/getFamilyMembers?user_id=${auth.currentUser.uid}`
+            console.log(members_url)
 
             const response = await axios.get(members_url)
             return { members: response.data.members, requests: response.data.requests }
@@ -197,9 +197,9 @@ export default function FamilyScreen() {
 
             <FlatList 
                 data={[...children, ...requests]}
-                renderItem={({ item }) => item.invite_pending ? <Request data={item} /> : <Child data={item} />}
+                renderItem={({ item }) => item.pending_parent ? <Request data={item} /> : <Child data={item} />}
                 ItemSeparatorComponent={() => <View style={styles.item_seperator}/>}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={"white"} />}
                 ListHeaderComponent={() => (
                     <View style={styles.headerContainer}>
                       <Text style={styles.headerText}>Family Members</Text>

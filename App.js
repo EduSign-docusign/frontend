@@ -20,6 +20,8 @@ import AuthScreen from "./screens/auth/login";
 import PermissionSlipsScreen from "./screens/home";
 import FamilyScreen from "./screens/family";
 import EditProfile from "./screens/editprofile";
+import ResetPassword from "./screens/auth/forgotpassword";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyB6XFbwflmcP_t0mAfwPfvptKrUZtk_PoY",
@@ -133,6 +135,7 @@ function App() {
                 <>
                 <Stack.Screen name="Auth" component={AuthScreen} />
                 <Stack.Screen name="SignUp" component={SignUpScreen} />
+                <Stack.Screen name="Forgot Password" component={ResetPassword} options={{ headerShown: true }} />
                 </>
             )}
             

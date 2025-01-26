@@ -14,7 +14,10 @@ import styles from "../styles";
 export default function SignUpScreen() {
     const [fullName, onChangeFullName] = useState("")
     const [email, onChangeEmail] = useState("")
+    const [parentName, onChangeParentName] = useState("")
     const [parentEmail, onChangeParentEmail] = useState("")
+    const [parentPhone, onChangeParentPhone] = useState("")
+    const [school, onChangeSchool] = useState("")
     const [password, onChangePassword] = useState("")
     const [confirmPassword, onChangeConfirmPassword] = useState("")
     const [errorMessage, setErrorMessage] = useState()
@@ -72,7 +75,12 @@ export default function SignUpScreen() {
             await setDoc(docRef, {
                 name: fullName,
                 email: email,
-                parentEmail: parentEmail
+                parentName: parentName,
+                parentEmail: parentEmail,
+                parentPhone: parentPhone.replace(/[^\d+]/g, '').replace(/(?!^\+)./g, (match, offset) => offset === 0 && match === '+' ? '+' : match.replace(/\D/g, '')),
+                school: school,
+                type: "student",
+                pfp_url: "https://i.pinimg.com/736x/ff/82/b6/ff82b607537ed90b2f343c643960acfa.jpg"
             });
 
             console.log("Created documents succesully")
@@ -95,7 +103,7 @@ export default function SignUpScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <KeyboardAwareScrollView refreshControl={<RefreshControl refreshing={refreshing} tintColor={"white"}/>} contentContainerStyle={Platform.OS == "ios" ? {flex: 1, paddingTop: 50} : {flexGrow: 1}} enableOnAndroid={true}>
+            <KeyboardAwareScrollView refreshControl={<RefreshControl refreshing={refreshing} tintColor={"white"}/>} contentContainerStyle={Platform.OS == "ios" ? {flex: 1, paddingTop: 25} : {flexGrow: 1}} enableOnAndroid={true}>
 
                 <View style={{flex: 1, justifyContent: "space-evenly", alignItems: "center"}}>
                     <Text style={{color: "white", fontSize: 16, textAlign: "center", maxWidth: 250}}>Enter your name as it appears on Canvas</Text>
@@ -115,10 +123,33 @@ export default function SignUpScreen() {
                         style={styles.submissionBox}
                     />
                     
+                    <TextInput 
+                        onChangeText={input => onChangeParentName(input.trim())} 
+                        placeholder="Parent Name"
+                        maxLength={25}
+                        placeholderTextColor={"white"}
+                        style={styles.submissionBox}
+                    />
                     
                     <TextInput 
                         onChangeText={input => onChangeParentEmail(input.trim())} 
                         placeholder="Parent Email"
+                        maxLength={25}
+                        placeholderTextColor={"white"}
+                        style={styles.submissionBox}
+                    />
+                    
+                    <TextInput 
+                        onChangeText={input => onChangeParentPhone(input.trim())} 
+                        placeholder="Parent Phone"
+                        maxLength={25}
+                        placeholderTextColor={"white"}
+                        style={styles.submissionBox}
+                    />
+
+                    <TextInput 
+                        onChangeText={input => onChangeSchool(input.trim())} 
+                        placeholder="School"
                         maxLength={25}
                         placeholderTextColor={"white"}
                         style={styles.submissionBox}

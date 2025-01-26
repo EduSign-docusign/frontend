@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Image, ActivityIndicator, Pressable, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Image, ActivityIndicator, Pressable, ScrollView, RefreshControl, TouchableOpacity, Alert, Share } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from '@expo/vector-icons';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import axios from 'axios';
+import * as Clipboard from 'expo-clipboard';
 
 import { pickImage } from '../../components/imagepicker';
 import styles from './styles'
@@ -74,6 +75,17 @@ export default function EditProfile() {
         setRefreshing(false)
       };
     
+     async function resetPassword() {
+            const auth = getAuth()
+            try {
+                await sendPasswordResetEmail(auth, user.email)
+                console.log("Sent Password Reset")
+                Alert.alert("Sent password reset link to your email!")
+            } catch(error) {
+                alert(error.message)
+            }
+        }
+    
     async function getUser() {
         try {
           const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser?user_id=${auth.currentUser.uid}`
@@ -90,7 +102,25 @@ export default function EditProfile() {
       getUser()
     }, []);
 
-    
+    async function shareTempPassword() {
+      try {
+        const result = await Share.share({
+          message:
+            `Hey Parent! Login to EduSign with your temporary password: ${user.tempPassword}`,
+        });
+        // if (result.action === Share.sharedAction) {
+        //   if (result.activityType) {
+        //     // shared with activity type of result.activityType
+        //   } else {
+        //     // shared
+        //   }
+        // } else if (result.action === Share.dismissedAction) {
+        //   // dismissed
+        // }
+      } catch (error) {
+        Alert.alert(error.message);
+      }    };
+
     if (!user) {
       return (
         <View style={{flex: 1, backgroundColor: "rgb(22, 23, 24)", justifyContent: "center", alignItems: 'center'}}>
@@ -124,6 +154,19 @@ export default function EditProfile() {
               <Text style={{color: "white", flex: 0.5}}>Name</Text>
               <Text style={{color: "white", flex: 1}}>{user.name}</Text>
             </View>
+            
+            {user.tempPassword && (
+              <View style={styles.updateField}>
+                <Text style={{color: "white", flex: 0.5}}>Temp Parent Password</Text>
+                <TouchableOpacity onPress={shareTempPassword}>
+                  <Text style={{color: "lightgrey", flex: 1}}>{user.tempPassword}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+     
+            <TouchableOpacity onPress={resetPassword} style={styles.updateField}>
+              <Text style={{color: "red", flex: 0.5}}>Reset Password</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity onPress={logOut} style={styles.updateField}>
               <Text style={{color: "red", flex: 0.5}}>Log Out</Text>
