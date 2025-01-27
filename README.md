@@ -1,6 +1,7 @@
-##Teacher Portal
+## Teacher Portal
 The teacher portal is available at www.tanuj.xyz/edusign
 
+## Student/Parent App
 To install and run the EduSign app (for students & parents) on your local machine:
 
 a) Use the .apk (Recommended) \
