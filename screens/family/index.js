@@ -116,7 +116,7 @@ export default function FamilyScreen() {
             console.log(documents_url)
             
             const token = await getToken()
-            
+
             const response = await axios.get(documents_url, {
                 headers: {
                   Authorization: `Bearer ${token}`, 
@@ -131,10 +131,18 @@ export default function FamilyScreen() {
 
     async function getFamilyMembers() {
         try {
-            const members_url = `https://backend-375617093037.us-central1.run.app/api/getFamilyMembers?user_id=${auth.currentUser.uid}`
+            const members_url = `https://backend-375617093037.us-central1.run.app/api/getFamilyMembers`
             console.log(members_url)
 
-            const response = await axios.get(members_url)
+            const token = await getToken()
+
+            const response = await axios.get(members_url, {
+                headers: {
+                  Authorization: `Bearer ${token}`, 
+                  "Content-Type": "application/json", 
+                }
+            });
+
             return { members: response.data.members, requests: response.data.requests }
         } catch(error) {
             console.error('Error fetching members', error)

@@ -3,7 +3,7 @@ export default {
     "name": "EduSign",
     "scheme": "edusign",
     "slug": "edusign",
-    "version": "1.0.3",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/edusign-logo.png",
     "userInterfaceStyle": "light",

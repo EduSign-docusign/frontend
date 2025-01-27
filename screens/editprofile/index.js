@@ -4,10 +4,10 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from '@expo/vector-icons';
 import { getAuth, signOut, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import axios from 'axios';
-import * as Clipboard from 'expo-clipboard';
 
 import { pickImage } from '../../components/imagepicker';
 import styles from './styles'
+import { getToken } from "../../utils";
 
 
 export default function EditProfile() {
@@ -167,7 +167,7 @@ export default function EditProfile() {
                  <Text style={{color: "white", flex: 1}}>{user.school}</Text>
                </View>
             )}
-            
+
             {user.tempPassword && (
               <View style={styles.updateField}>
                 <Text style={{color: "white", flex: 0.5}}>Temp Parent Password</Text>
