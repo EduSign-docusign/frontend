@@ -3,12 +3,12 @@ export default {
     "name": "EduSign",
     "scheme": "edusign",
     "slug": "edusign",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/edusign-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/edusign-logo.png",
+      "image": "./assets/adaptive-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0d111a"
     },

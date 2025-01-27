@@ -88,10 +88,16 @@ export default function EditProfile() {
     
     async function getUser() {
         try {
-          const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser?user_id=${auth.currentUser.uid}`
+          const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser`
           console.log(user_url)
     
-          const response = await axios.get(user_url);
+          const token = await getToken()
+          const response = await axios.get(user_url, { 
+              headers: {
+                  Authorization: `Bearer ${token}`, 
+                  "Content-Type": "application/json", 
+          }});          
+          
           setUser(response.data.user);
         } catch (error) {
           console.error('Error fetching documents:', error);
@@ -154,6 +160,13 @@ export default function EditProfile() {
               <Text style={{color: "white", flex: 0.5}}>Name</Text>
               <Text style={{color: "white", flex: 1}}>{user.name}</Text>
             </View>
+            
+            {user.school && (
+                <View style={styles.updateField}>
+                 <Text style={{color: "white", flex: 0.5}}>School</Text>
+                 <Text style={{color: "white", flex: 1}}>{user.school}</Text>
+               </View>
+            )}
             
             {user.tempPassword && (
               <View style={styles.updateField}>

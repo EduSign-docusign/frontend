@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import styles from "./styles";
 import { getAuth } from "firebase/auth";
+import { getToken } from "../../utils";
 
 
 export default function FamilyScreen() {
@@ -92,10 +93,16 @@ export default function FamilyScreen() {
 
     async function getUser() {
         try {
-            const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser?user_id=${auth.currentUser.uid}`;
+            const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser`;
             console.log(user_url);
 
-            const response = await axios.get(user_url);
+            const token = await getToken()
+            const response = await axios.get(user_url, { 
+                headers: {
+                    Authorization: `Bearer ${token}`, 
+                    "Content-Type": "application/json", 
+            }});
+
             setUser(response.data.user);
             return response.data.user;
         } catch (error) {
@@ -105,10 +112,17 @@ export default function FamilyScreen() {
 
     async function getStudentDocuments() {
         try {
-            const documents_url = `https://backend-375617093037.us-central1.run.app/api/getDocuments?user_id=${auth.currentUser.uid}`
+            const documents_url = `https://backend-375617093037.us-central1.run.app/api/getDocuments`
             console.log(documents_url)
-        
-            const response = await axios.get(documents_url);
+            
+            const token = await getToken()
+            
+            const response = await axios.get(documents_url, {
+                headers: {
+                  Authorization: `Bearer ${token}`, 
+                  "Content-Type": "application/json", 
+                }
+            });
             return response.data.documents
         } catch (error) {
           console.error('Error fetching documents:', error);

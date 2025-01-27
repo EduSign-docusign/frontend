@@ -137,6 +137,7 @@ const PermissionSlipsScreen = () => {
 
       const token = await getToken()
       console.log(token)
+
       const response = await axios.post(notification_url, {expoPushToken: expoPushToken}, {
         headers: {
           Authorization: `Bearer ${token}`, 
@@ -150,8 +151,10 @@ const PermissionSlipsScreen = () => {
   }
 
   async function getUser() {
-    const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser?user_id=${auth.currentUser.uid}`;
+    const user_url = `https://backend-375617093037.us-central1.run.app/api/getUser`;
+    const token = await getToken()
     console.log(user_url);
+    console.log(token)
     
     let attempts = 0;
     const maxAttempts = 3;
@@ -160,8 +163,16 @@ const PermissionSlipsScreen = () => {
 
     while (attempts < maxAttempts) {
       try {
+        await delay(3000)
         console.log("Attempt", attempts + 1, "Retrying...")
-        const response = await axios.get(user_url);
+        
+        const response = await axios.get(user_url, {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+            "Content-Type": "application/json", 
+          }
+        });
+        
         console.log("User Response", JSON.stringify(response.data))
         if (response.data.user) {
           setUser(response.data.user);
@@ -182,10 +193,16 @@ const PermissionSlipsScreen = () => {
 
   async function getStudentDocuments() {
     try {
-      const documents_url = `https://backend-375617093037.us-central1.run.app/api/getDocuments?user_id=${auth.currentUser.uid}`
+      const documents_url = `https://backend-375617093037.us-central1.run.app/api/getDocuments`
       console.log(documents_url)
 
-      const response = await axios.get(documents_url);
+      const token = await getToken()
+      const response = await axios.get(documents_url, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+          "Content-Type": "application/json", 
+        }
+      });
       console.log("Documents", response.data)
       setSections(response.data.documents || []);
     } catch (error) {
