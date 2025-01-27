@@ -1,5 +1,5 @@
 ## Teacher Portal
-The teacher portal is available at www.tanuj.xyz/edusign. Login: potnoodles20000@gmail.com Password: (INPUT)
+The teacher portal is available at www.tanuj.xyz/edusign. Login: potnoodles2000@gmail.com Password: (INPUT)
 
 ## Student/Parent App
 Install and run the EduSign app (for students & parents) on your local machine:
